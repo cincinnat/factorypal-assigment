@@ -76,3 +76,72 @@ services:
       - python
       - -u
       - /app/producer.py
+
+  #
+  # assignment
+  #
+
+  spark-master:
+    container_name: spark-master
+    build: ./spark
+    environment:
+      - SPARK_MODE=master
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+      - SPARK_USER=spark
+      - SPARK_MASTER_PORT=7077
+      - SPARK_MASTER_WEBUI_PORT=8080
+    ports:
+      - '18080:8080'
+    healthcheck:
+      test: healthcheck.sh
+      interval: 15s
+      timeout: 1s
+      start_period: 5s
+      retries: 3
+
+  spark-worker:
+    image: docker.io/bitnami/spark:latest
+    container_name: spark-worker
+    depends_on:
+      spark-master:
+        condition: service_healthy
+    ports:
+      - '18081:8081'
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_WORKER_CORES=1
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+      - SPARK_USER=spark
+    volumes:
+      - ./data:/data
+
+  spark-streaming-app:
+    container_name: spark-streaming-app
+    image: docker.io/bitnami/spark:latest
+    depends_on:
+      spark-master:
+        condition: service_healthy
+      topic-creator:
+        condition: service_completed_successfully
+    command:
+      - /opt/bitnami/spark/bin/spark-submit
+      - --master=spark://spark-master:7077
+      - --packages=org.apache.spark:spark-sql-kafka-0-10_2.13:4.0.0
+      - /aggregate-events.py
+    ports:
+      - '4040:4040'
+    volumes:
+      - ./aggregate-events.py:/aggregate-events.py
+      - ./data:/data
+
+networks:
+  default:
+    name: factorypal-net
