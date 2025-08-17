@@ -142,6 +142,31 @@ services:
       - ./aggregate-events.py:/aggregate-events.py
       - ./data:/data
 
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: clickhouse
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8123/?query=SELECT%201
+      interval: 15s
+      timeout: 1s
+      start_period: 5s
+      retries: 3
+
+  init-clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: init-clickhouse
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+      topic-creator:
+        condition: service_completed_successfully
+    network_mode: container:clickhouse
+    entrypoint: ['/bin/bash']
+    command:
+      - /init-clickhouse.sh
+    volumes:
+      - ./scripts/init-clickhouse.sh:/init-clickhouse.sh
+
 networks:
   default:
     name: factorypal-net
