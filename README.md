@@ -1,4 +1,4 @@
-FactoryPal home assigment
+FactoryPal home assignment
 ===
 
 To create the environment run
@@ -9,8 +9,8 @@ docker compose up -d
 Once all containers are running Spark Jobs UI will be available at
 http://localhost:4040.
 
-After one minute (the aggreagation window) the aggreaged data be data should
-apprear in Clickhouse and can be request as follows.
+After two minutes (the watermark threshold) the aggregated data should
+appear in Clickhouse and can be request as follows.
 ```bash
 docker run -it --rm --network=container:clickhouse \
     --entrypoint clickhouse-client clickhouse/clickhouse-server \
@@ -18,7 +18,7 @@ docker run -it --rm --network=container:clickhouse \
     -q 'select * from sensor_output limit 10'
 ```
 
-The outbut should be similar to:
+The output should be similar to:
 ```
      sensorId       windowStart       windowEnd         averageValue
 
