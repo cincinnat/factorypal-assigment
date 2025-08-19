@@ -12,7 +12,7 @@ outpu_topic = 'sensor-output'
 spark = (SparkSession
     .builder
     .appName("aggregate-events")
-    .config('spark.sql.shuffle.partitions', 10)
+    .config('spark.sql.shuffle.partitions', 3)
     .getOrCreate()
 )
 
@@ -56,7 +56,7 @@ df = (spark
     .option('topic', outpu_topic)
     .option('checkpointLocation', checkpoint_location)
     .outputMode('append')
-    .trigger(processingTime='5 seconds')
+    .trigger(processingTime='10 seconds')
     .start()
 
     .awaitTermination()

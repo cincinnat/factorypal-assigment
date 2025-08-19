@@ -7,7 +7,7 @@ docker compose up -d
 ```
 
 Once all containers are running Spark Jobs UI will be available at
-`http://localhost:4040`.
+http://localhost:4040.
 
 After one minute (the aggreagation window) the aggreaged data be data should
 apprear in Clickhouse and can be request as follows.
